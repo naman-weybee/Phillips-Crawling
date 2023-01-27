@@ -3,8 +3,12 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools;
 using System;
+using System.Collections;
+using System.Data.SqlTypes;
 using System.Net;
 using System.Reflection.Metadata;
+using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -45,7 +49,60 @@ namespace Phillips_Crawling
             WebDriver driver = new ChromeDriver();
             driver.Navigate().GoToUrl(Url);
 
-            var PageSource = GetFullyLoadedWebPageContent(driver);
+            string PageSource = GetFullyLoadedWebPageContent(driver);
+            var Details = new HtmlDocument();
+            Details.LoadHtml(PageSource);
+
+            var AllWatchAuctions = Details.DocumentNode.SelectNodes("//li[@class='has-image auction col-sm-2']");
+            var Titles = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']//h2/a");
+            var ImageURL = Details.DocumentNode.SelectNodes("//img[@class='phillips-image__image']");
+            var Links = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']/h2/a");
+            var TimeDuration = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']/p");
+            var SingleTitle = @"./div[@class='content-body col-sm-2 col-md-5']//h2/a";
+            var SingleImageURL = @".//a//img";
+            var SingleLink = @".//a";
+            var SingleTimeDuration = @".//p";
+
+            var timeDurationRegex = new Regex(@"(\s?\,?\-?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\,?\-?)(\w+)(\s?\,?\-?)(\d{4})");
+
+            try
+            {
+                foreach (var watchAuction in AllWatchAuctions)
+                {
+                    var Title = "";
+                    var imageURL = "";
+                    var link = "";
+                    var timeDuration = "";
+                    var StartDate = "";
+                    var StartMonth = "";
+                    var StartYear = "";
+                    var EndDate = "";
+                    var EndMonth = "";
+                    var EndYear = "";
+
+                    int index = AllWatchAuctions.IndexOf(watchAuction);
+
+                    Title = watchAuction.SelectSingleNode(SingleTitle).InnerHtml.Trim();
+                    Console.WriteLine("Title: " + Title);
+
+                    imageURL = watchAuction.SelectSingleNode(SingleImageURL).GetAttributes("src").First().Value;
+                    Console.WriteLine("ImageURL: " + imageURL);
+
+                    link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(SingleLink).GetAttributes("href").First().Value;
+                    Console.WriteLine("Link: " + link);
+
+                    timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
+                    Console.WriteLine("TimeDuration: " + timeDuration);
+
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }
