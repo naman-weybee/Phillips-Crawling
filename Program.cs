@@ -63,7 +63,7 @@ namespace Phillips_Crawling
             var SingleLink = @".//a";
             var SingleTimeDuration = @".//p";
 
-            var timeDurationRegex = new Regex(@"(\s?\,?\-?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\,?\-?)(\w+)(\s?\,?\-?)(\d{4})");
+            Regex timeDurationRegex = new(@"(\s?\,?\-?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\,?\-?)(\w+)(\s?\,?\-?)(\d{4})");
 
             try
             {
@@ -80,7 +80,7 @@ namespace Phillips_Crawling
                     var EndMonth = "";
                     var EndYear = "";
 
-                    int index = AllWatchAuctions.IndexOf(watchAuction);
+                    var timeMatchRegex = timeDurationRegex.Match(watchAuction.InnerText.Trim().Replace("\n", ""));
 
                     Title = watchAuction.SelectSingleNode(SingleTitle).InnerHtml.Trim();
                     Console.WriteLine("Title: " + Title);
@@ -93,6 +93,16 @@ namespace Phillips_Crawling
 
                     timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
                     Console.WriteLine("TimeDuration: " + timeDuration);
+
+                    //if (timeMatchRegex.Success)
+                    //{
+                    //    StartDate = timeMatchRegex.Groups[2].Value;
+                    //    StartMonth = timeMatchRegex.Groups[8].Value;
+                    //    StartYear = timeMatchRegex.Groups[3].Value;
+                    //    EndDate = timeMatchRegex.Groups[6].Value;
+                    //    EndMonth = timeMatchRegex.Groups[8].Value;
+                    //    EndYear = timeMatchRegex.Groups[10].Value;
+                    //}
 
                     Console.WriteLine();
                     Console.WriteLine();
