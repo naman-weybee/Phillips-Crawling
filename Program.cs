@@ -92,11 +92,6 @@ namespace Phillips_Crawling
                     link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(SingleLink).GetAttributes("href").First().Value;
                     timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
 
-                    Console.WriteLine("Title: " + Title);
-                    Console.WriteLine("ImageURL: " + imageURL);
-                    Console.WriteLine("Link: " + link);
-                    Console.WriteLine("TimeDuration: " + timeDuration);
-
                     Regex uniquId = new(@"(^/)?(\w+)$", RegexOptions.IgnoreCase);
                     var id = uniquId.Match(link).Value;
 
@@ -110,13 +105,6 @@ namespace Phillips_Crawling
                         EndDate = timeMatchRegex.Groups[12].Value == "" ? timeMatchRegex.Groups[4].Value == "" ? timeMatchRegex.Groups[1].Value : timeMatchRegex.Groups[4].Value : timeMatchRegex.Groups[12].Value;
                         EndMonth = timeMatchRegex.Groups[16].Value == "" ? timeMatchRegex.Groups[6].Value : timeMatchRegex.Groups[16].Value;
                         EndYear = timeMatchRegex.Groups[18].Value == "" ? timeMatchRegex.Groups[8].Value : timeMatchRegex.Groups[18].Value;
-
-                        Console.WriteLine("StartDate: " + StartDate);
-                        Console.WriteLine("StartMonth: " + StartMonth);
-                        Console.WriteLine("StartYear: " + StartYear);
-                        Console.WriteLine("EndDate: " + EndDate);
-                        Console.WriteLine("EndMonth: " + EndMonth);
-                        Console.WriteLine("EndYear: " + EndYear);
                     }
 
                     Auctions auctions = new()
@@ -133,6 +121,19 @@ namespace Phillips_Crawling
                         EndYear = EndYear
                     };
                     _context.tbl_Auctions.Add(auctions);
+
+                    Console.WriteLine("----------Auction----------");
+                    Console.WriteLine("Id: " + id);
+                    Console.WriteLine("Title: " + Title);
+                    Console.WriteLine("ImageURL: " + imageURL);
+                    Console.WriteLine("Link: " + link);
+                    Console.WriteLine("TimeDuration: " + timeDuration);
+                    Console.WriteLine("StartDate: " + StartDate);
+                    Console.WriteLine("StartMonth: " + StartMonth);
+                    Console.WriteLine("StartYear: " + StartYear);
+                    Console.WriteLine("EndDate: " + EndDate);
+                    Console.WriteLine("EndMonth: " + EndMonth);
+                    Console.WriteLine("EndYear: " + EndYear);
 
                     HtmlWeb web = new();
                     //HtmlDocument doc = web.Load(link);
@@ -163,20 +164,20 @@ namespace Phillips_Crawling
                         var dimensionString = "";
                         var priceString = "";
 
-                        var doc = new HtmlDocument();
+                        HtmlDocument doc = new();
                         doc.LoadHtml(lot.InnerHtml);
 
                         var lotLink = lot.GetAttributes("href").First().Value;
                         HtmlDocument lotDoc = web.Load(lotLink);
 
                         var watchId = lotDoc.DocumentNode.SelectNodes("//h3[@class='lot-page__lot__number']").First().InnerText.Replace("Σ", "").Trim();
-                        modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text").First().InnerText.Trim();
-                        //var lotImageURL = doc.DocumentNode.SelectNodes("//img[@class='phillips-image__image']").First().GetAttributes("src").First().Value;
-                        material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text").First().InnerText.Trim();
-                        dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text").First().InnerText.Trim();
-                        priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']").First().InnerText.Replace(",", "").Trim();
-                        manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text").First().InnerText.Replace(",", "").Trim();
-                        refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text").First().InnerText.Replace(",", "").Trim();
+                        modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text").First().InnerText.Trim() : null;
+                        var lotImageURL = doc.DocumentNode.SelectNodes("//div[@class='phillips-image']/img").First().GetAttributes("src").First().Value;
+                        material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text").First().InnerText.Trim() : null;
+                        dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text").First().InnerText.Trim() : null;
+                        priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']") != null ? lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']").First().InnerText.Replace(",", "").Trim() : null;
+                        manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text").First().InnerText.Replace(",", "").Trim() : null;
+                        refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text").First().InnerText.Replace(",", "").Trim() : null;
 
                         Regex dimensionRegex = new(@"(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+)((\s?\,?\.?\-?\s?)(\w+)?(\s?\,?\.?\-?\s?)(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+))?", RegexOptions.IgnoreCase);
                         var dimensionMatchRegex = dimensionRegex.Match(dimensionString);
@@ -188,7 +189,7 @@ namespace Phillips_Crawling
                             unit = dimensionMatchRegex.Groups[3].Value;
                         }
 
-                        Regex priceRegex = new(@"(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+)((\s?\,?\.?\-?\s?)(\w+)?(\s?\,?\.?\-?\s?)(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+))?", RegexOptions.IgnoreCase);
+                        Regex priceRegex = new(@"^(\w+)?(\s?)(\w+)?(\s?)(\D*)(\d+)(\D*)$", RegexOptions.IgnoreCase);
                         var cost = priceRegex.Match(priceString);
 
                         if (cost.Success)
@@ -197,20 +198,12 @@ namespace Phillips_Crawling
                             currency = cost.Groups[5].Value;
                         }
 
-                        Console.WriteLine(lotLink);
-                        Console.WriteLine(watchId);
-                        Console.WriteLine(modelName);
-                        //Console.WriteLine(lotImageURL);
-                        Console.WriteLine(material);
-                        Console.WriteLine("--------------");
-                        Console.WriteLine();
-
                         Watch watch = new()
                         {
                             AuctionId = id,
                             WatchId = watchId,
                             ModelName = modelName,
-                            //ImageURL = lotImageURL,
+                            ImageURL = imageURL,
                             Material = material,
                             DimensionLength = dimensionLength,
                             DimensionWidth = dimensionWidth,
@@ -221,6 +214,19 @@ namespace Phillips_Crawling
                             ReferenceNo = refrenceNo
                         };
                         _context.tbl_Watch.Add(watch);
+
+                        Console.WriteLine("----------Watch----------");
+                        Console.WriteLine("AuctionId: " + id);
+                        Console.WriteLine("WatchId: " + watchId);
+                        Console.WriteLine("ModelName: " + modelName);
+                        Console.WriteLine("Material: " + material);
+                        Console.WriteLine("DimensionLength: " + dimensionLength);
+                        Console.WriteLine("DimensionWidth: " + dimensionWidth);
+                        Console.WriteLine("Unit: " + unit);
+                        Console.WriteLine("Manufacturer: " + manufacturer);
+                        Console.WriteLine("Price: " + price);
+                        Console.WriteLine("Currency: " + currency);
+                        Console.WriteLine("RefrenceNo: " + refrenceNo);
                     }
 
                     Console.WriteLine();
