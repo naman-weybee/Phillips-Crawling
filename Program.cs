@@ -57,13 +57,13 @@ namespace Phillips_Crawling
             var Titles = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']//h2/a");
             var ImageURL = Details.DocumentNode.SelectNodes("//img[@class='phillips-image__image']");
             var Links = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']/h2/a");
-            var TimeDuration = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']/p");
+            var TimeDuration = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']");
             var SingleTitle = @"./div[@class='content-body col-sm-2 col-md-5']//h2/a";
             var SingleImageURL = @".//a//img";
             var SingleLink = @".//a";
             var SingleTimeDuration = @".//p";
 
-            Regex timeDurationRegex = new(@"(\s?\,?\-?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\-?\,?)(\d+)?(\s?\,?\-?)(\w+)(\s?\,?\-?)(\d{4})");
+            Regex timeDurationRegex = new(@"(\d+)(\s?\,?\-?\&?\s?)((\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4})?(((\s?\,?\-?\s?))(\d+)?(\s?\,?\-?\s?)(\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4}))?)?", RegexOptions.IgnoreCase);
 
             try
             {
@@ -80,7 +80,6 @@ namespace Phillips_Crawling
                     var EndMonth = "";
                     var EndYear = "";
 
-                    var timeMatchRegex = timeDurationRegex.Match(watchAuction.InnerText.Trim().Replace("\n", ""));
 
                     Title = watchAuction.SelectSingleNode(SingleTitle).InnerHtml.Trim();
                     Console.WriteLine("Title: " + Title);
@@ -94,15 +93,24 @@ namespace Phillips_Crawling
                     timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
                     Console.WriteLine("TimeDuration: " + timeDuration);
 
-                    //if (timeMatchRegex.Success)
-                    //{
-                    //    StartDate = timeMatchRegex.Groups[2].Value;
-                    //    StartMonth = timeMatchRegex.Groups[8].Value;
-                    //    StartYear = timeMatchRegex.Groups[3].Value;
-                    //    EndDate = timeMatchRegex.Groups[6].Value;
-                    //    EndMonth = timeMatchRegex.Groups[8].Value;
-                    //    EndYear = timeMatchRegex.Groups[10].Value;
-                    //}
+                    var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("\n", ""));
+
+                    if (timeMatchRegex.Success)
+                    {
+                        StartDate = timeMatchRegex.Groups[1].Value;
+                        StartMonth = timeMatchRegex.Groups[6].Value != "" ? timeMatchRegex.Groups[6].Value : timeMatchRegex.Groups[16].Value;
+                        StartYear = timeMatchRegex.Groups[8].Value != "" ? timeMatchRegex.Groups[8].Value : timeMatchRegex.Groups[18].Value;
+                        EndDate = timeMatchRegex.Groups[12].Value == "" ? timeMatchRegex.Groups[4].Value != "" ? timeMatchRegex.Groups[4].Value : timeMatchRegex.Groups[1].Value : timeMatchRegex.Groups[1].Value;
+                        EndMonth = timeMatchRegex.Groups[16].Value == "" ? timeMatchRegex.Groups[6].Value : timeMatchRegex.Groups[16].Value;
+                        EndYear = timeMatchRegex.Groups[18].Value == "" ? timeMatchRegex.Groups[8].Value : timeMatchRegex.Groups[18].Value;
+
+                        Console.WriteLine("StartDate: " + StartDate);
+                        Console.WriteLine("StartMonth: " + StartMonth);
+                        Console.WriteLine("StartYear: " + StartYear);
+                        Console.WriteLine("EndDate: " + EndDate);
+                        Console.WriteLine("EndMonth: " + EndMonth);
+                        Console.WriteLine("EndYear: " + EndYear);
+                    }
 
                     Console.WriteLine();
                     Console.WriteLine();
