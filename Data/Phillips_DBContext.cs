@@ -17,7 +17,7 @@ namespace Phillips_Crawling_Task.Data
             optionsBuilder.UseSqlServer(@"data source=DESKTOP-9J2CV47; database=Phillips; integrated security=SSPI");
         }
 
-        public DbSet<Watch_Auctions> tbl_Watch_Auctions { get; set; }
-        public DbSet<Auction> tbl_Auction { get; set; }
+        public DbSet<Auctions> tbl_Auctions { get; set; }
+        public DbSet<Watch> tbl_Watch { get; set; }
     }
 }

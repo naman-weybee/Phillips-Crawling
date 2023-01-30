@@ -1,7 +1,9 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.EntityFrameworkCore;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools;
+using Phillips_Crawling_Task.Data;
 using System;
 using System.Collections;
 using System.Data.SqlTypes;
@@ -10,13 +12,13 @@ using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Phillips_Crawling
 {
     class Program
     {
         private const string Url = "https://www.phillips.com/auctions/past/filter/Departments%3DWatches/sort/newest";
+        private static readonly Phillips_DBContext _context = new();
 
         static void Main(string[] args)
         {
@@ -24,7 +26,7 @@ namespace Phillips_Crawling
             Console.ReadLine();
         }
 
-        private static string GetFullyLoadedWebPageContent(WebDriver driver)
+        public static string GetFullyLoadedWebPageContent(WebDriver driver)
         {
             long scrollHeight = 0;
             IJavaScriptExecutor js = driver;
@@ -37,19 +39,18 @@ namespace Phillips_Crawling
                     Thread.Sleep(1000);
                 }
                 else
-                {
                     break;
-                }
             } while (true);
             return driver.PageSource;
         }
 
-        private static void GetWatchAuctionDetails()
+        public static void GetWatchAuctionDetails()
         {
             WebDriver driver = new ChromeDriver();
             driver.Navigate().GoToUrl(Url);
 
             string PageSource = GetFullyLoadedWebPageContent(driver);
+            driver.Close();
             var Details = new HtmlDocument();
             Details.LoadHtml(PageSource);
 
@@ -80,18 +81,17 @@ namespace Phillips_Crawling
                     var EndMonth = "";
                     var EndYear = "";
 
-
                     Title = watchAuction.SelectSingleNode(SingleTitle).InnerHtml.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Trim();
-                    Console.WriteLine("Title: " + Title);
+                    //Console.WriteLine("Title: " + Title);
 
                     imageURL = watchAuction.SelectSingleNode(SingleImageURL).GetAttributes("src").First().Value;
-                    Console.WriteLine("ImageURL: " + imageURL);
+                    //Console.WriteLine("ImageURL: " + imageURL);
 
                     link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(SingleLink).GetAttributes("href").First().Value;
-                    Console.WriteLine("Link: " + link);
+                    //Console.WriteLine("Link: " + link);
 
                     timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
-                    Console.WriteLine("TimeDuration: " + timeDuration);
+                    //Console.WriteLine("TimeDuration: " + timeDuration);
 
                     var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("\n", ""));
 
@@ -104,18 +104,63 @@ namespace Phillips_Crawling
                         EndMonth = timeMatchRegex.Groups[16].Value == "" ? timeMatchRegex.Groups[6].Value : timeMatchRegex.Groups[16].Value;
                         EndYear = timeMatchRegex.Groups[18].Value == "" ? timeMatchRegex.Groups[8].Value : timeMatchRegex.Groups[18].Value;
 
-                        Console.WriteLine("StartDate: " + StartDate);
-                        Console.WriteLine("StartMonth: " + StartMonth);
-                        Console.WriteLine("StartYear: " + StartYear);
-                        Console.WriteLine("EndDate: " + EndDate);
-                        Console.WriteLine("EndMonth: " + EndMonth);
-                        Console.WriteLine("EndYear: " + EndYear);
+                        //Console.WriteLine("StartDate: " + StartDate);
+                        //Console.WriteLine("StartMonth: " + StartMonth);
+                        //Console.WriteLine("StartYear: " + StartYear);
+                        //Console.WriteLine("EndDate: " + EndDate);
+                        //Console.WriteLine("EndMonth: " + EndMonth);
+                        //Console.WriteLine("EndYear: " + EndYear);
+                    }
+
+                    HtmlWeb web = new();
+                    HtmlDocument doc = web.Load(link);
+
+                    //WebDriver driver1 = new ChromeDriver();
+                    //driver1.Navigate().GoToUrl(link);
+
+                    //string PageSource1 = GetFullyLoadedWebPageContent(driver1);
+                    //driver.Close();
+
+                    var allLots = doc.DocumentNode.SelectNodes("//a[@class='detail-link']");
+                    var lotDetails = doc.DocumentNode.SelectNodes("//ul[@class='lot-page__details__list']");
+
+                    foreach (var lot in allLots)
+                    {
+                        var lotLink = lot.GetAttributes("href").First().Value;
+                        HtmlDocument lotDoc = web.Load(lotLink);
+
+                        var watchId = lotDoc.DocumentNode.SelectNodes("//h3[@class='lot-page__lot__number']").First().InnerText.Replace("Σ", "").Trim();
+                        var modelName = lotDoc.DocumentNode.SelectNodes("//ul[@class='lot-page__details__list']/li/p/span[4]/text").First().InnerText.Trim();
+                        //var lotImageURL = lotDoc.DocumentNode.SelectNodes("//div[@class='phillips-image main-lot-image']/img").First().GetAttributes("src").First().Value;
+                        var material = lotDoc.DocumentNode.SelectNodes("//ul[@class='lot-page__details__list']/li/p/span[4]/text").First().InnerText.Trim();
+                        var dimensionString = lotDoc.DocumentNode.SelectNodes("//ul[@class='lot-page__details__list']/li/p/span[9]/text").First().InnerText.Trim();
+
+                        Regex dimensionRegex = new(@"(\d+)");
+                        Regex unitRegex = new(@"(\D+)");
+                        var dimention = dimensionRegex.Match(dimensionString).Value.Trim();
+                        var unit = unitRegex.Match(dimensionString).Value.Trim();
                     }
 
                     Console.WriteLine();
                     Console.WriteLine();
                     Console.WriteLine();
+
+                    //Auctions auctions = new()
+                    //{
+                    //    Title = Title,
+                    //    ImageURL = imageURL,
+                    //    Link = link,
+                    //    StartDate = StartDate,
+                    //    StartMonth = StartMonth,
+                    //    StartYear = StartYear,
+                    //    EndDate = EndDate,
+                    //    EndMonth = EndMonth,
+                    //    EndYear = EndYear
+                    //};
+                    //_context.tbl_Auctions.Add(auctions);
                 }
+                //_context.SaveChangesAsync();
+                Console.WriteLine("Data Inserte Completed...!");
             }
             catch (Exception ex)
             {

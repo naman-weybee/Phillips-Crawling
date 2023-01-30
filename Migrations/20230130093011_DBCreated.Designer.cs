@@ -11,7 +11,7 @@ using Phillips_Crawling_Task.Data;
 namespace Phillips_Crawling_Task.Migrations
 {
     [DbContext(typeof(Phillips_DBContext))]
-    [Migration("20230130084600_DBCreated")]
+    [Migration("20230130093011_DBCreated")]
     partial class DBCreated
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,49 +23,7 @@ namespace Phillips_Crawling_Task.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("Phillips_Crawling_Task.Data.Auction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("AuctionId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Dimensions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageURL")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Material")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ModelName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("WatchAuctionIdId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WatchAuctionIdId");
-
-                    b.ToTable("tbl_Auction");
-                });
-
-            modelBuilder.Entity("Phillips_Crawling_Task.Data.Watch_Auctions", b =>
+            modelBuilder.Entity("Phillips_Crawling_Task.Data.Auctions", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -111,18 +69,60 @@ namespace Phillips_Crawling_Task.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("tbl_Watch_Auctions");
+                    b.ToTable("tbl_Auctions");
                 });
 
-            modelBuilder.Entity("Phillips_Crawling_Task.Data.Auction", b =>
+            modelBuilder.Entity("Phillips_Crawling_Task.Data.Watch", b =>
                 {
-                    b.HasOne("Phillips_Crawling_Task.Data.Watch_Auctions", "WatchAuctionId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AuctionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Dimensions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageURL")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Material")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WatchId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionId");
+
+                    b.ToTable("tbl_Watch");
+                });
+
+            modelBuilder.Entity("Phillips_Crawling_Task.Data.Watch", b =>
+                {
+                    b.HasOne("Phillips_Crawling_Task.Data.Auctions", "Auction")
                         .WithMany()
-                        .HasForeignKey("WatchAuctionIdId")
+                        .HasForeignKey("AuctionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("WatchAuctionId");
+                    b.Navigation("Auction");
                 });
 #pragma warning restore 612, 618
         }

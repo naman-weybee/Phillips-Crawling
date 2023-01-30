@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Phillips_Crawling_Task.Data
 {
-    public class Watch_Auctions
+    public class Auctions
     {
         [Key]
         public int Id { get; set; }

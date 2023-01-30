@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Phillips_Crawling_Task.Data
 {
-    public class Auction
+    public class Watch
     {
         [Key]
         public int Id { get; set; }
-        public Watch_Auctions WatchAuctionId { get; set; }
-        public string AuctionId { get; set; }
+        public Auctions Auction { get; set; }
+        public string WatchId { get; set; }
         public string ModelName { get; set; }
         public string ImageURL { get; set; }
         public string Material { get; set; }
