@@ -81,7 +81,7 @@ namespace Phillips_Crawling
                     var EndYear = "";
 
 
-                    Title = watchAuction.SelectSingleNode(SingleTitle).InnerHtml.Trim();
+                    Title = watchAuction.SelectSingleNode(SingleTitle).InnerHtml.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Trim();
                     Console.WriteLine("Title: " + Title);
 
                     imageURL = watchAuction.SelectSingleNode(SingleImageURL).GetAttributes("src").First().Value;
@@ -93,14 +93,14 @@ namespace Phillips_Crawling
                     timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
                     Console.WriteLine("TimeDuration: " + timeDuration);
 
-                    var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("\n", ""));
+                    var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("\n", ""));
 
                     if (timeMatchRegex.Success)
                     {
                         StartDate = timeMatchRegex.Groups[1].Value;
-                        StartMonth = timeMatchRegex.Groups[6].Value != "" ? timeMatchRegex.Groups[6].Value : timeMatchRegex.Groups[16].Value;
-                        StartYear = timeMatchRegex.Groups[8].Value != "" ? timeMatchRegex.Groups[8].Value : timeMatchRegex.Groups[18].Value;
-                        EndDate = timeMatchRegex.Groups[12].Value == "" ? timeMatchRegex.Groups[4].Value != "" ? timeMatchRegex.Groups[4].Value : timeMatchRegex.Groups[1].Value : timeMatchRegex.Groups[1].Value;
+                        StartMonth = timeMatchRegex.Groups[6].Value == "" ? timeMatchRegex.Groups[16].Value : timeMatchRegex.Groups[6].Value;
+                        StartYear = timeMatchRegex.Groups[8].Value == "" ? timeMatchRegex.Groups[18].Value : timeMatchRegex.Groups[8].Value;
+                        EndDate = timeMatchRegex.Groups[12].Value == "" ? timeMatchRegex.Groups[4].Value == "" ? timeMatchRegex.Groups[1].Value : timeMatchRegex.Groups[4].Value : timeMatchRegex.Groups[12].Value;
                         EndMonth = timeMatchRegex.Groups[16].Value == "" ? timeMatchRegex.Groups[6].Value : timeMatchRegex.Groups[16].Value;
                         EndYear = timeMatchRegex.Groups[18].Value == "" ? timeMatchRegex.Groups[8].Value : timeMatchRegex.Groups[18].Value;
 
