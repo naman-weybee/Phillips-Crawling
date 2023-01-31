@@ -63,9 +63,9 @@ namespace Phillips_Crawling
             WebDriver driver = new ChromeDriver(opt);
             driver.Navigate().GoToUrl(Url);
 
-            string PageSource = GetFullyLoadedWebPageContent(driver);
+            string AuctionPageSource = GetFullyLoadedWebPageContent(driver);
             var Details = new HtmlDocument();
-            Details.LoadHtml(PageSource);
+            Details.LoadHtml(AuctionPageSource);
 
             var AllWatchAuctions = Details.DocumentNode.SelectNodes("//li[@class='has-image auction col-sm-2']");
             var SingleTitle = @"./div[@class='content-body col-sm-2 col-md-5']//h2/a";
@@ -170,11 +170,11 @@ namespace Phillips_Crawling
                     }
 
                     driver.Navigate().GoToUrl(link);
-                    string PageSource1 = GetFullyLoadedWebPageContent(driver);
+                    string LotPageSource = GetFullyLoadedWebPageContent(driver);
 
                     HtmlWeb web = new();
                     var pageDetails = new HtmlDocument();
-                    pageDetails.LoadHtml(PageSource1);
+                    pageDetails.LoadHtml(LotPageSource);
 
                     var allLots = pageDetails.DocumentNode.SelectNodes(allLotsString);
                     if (allLots != null)
