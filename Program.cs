@@ -72,6 +72,7 @@ namespace Phillips_Crawling
             var SingleImageURL = @".//a//img";
             var SingleLink = @".//a";
             var SingleTimeDuration = @".//p";
+            var allLotsString = "//div[@class='phillips-lot']";
             var singleLotLink = ".//a[@class='detail-link']";
             var singleWatchId = ".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']";
             var singleModelName = "//strong[contains(text(),'Model Name')]/following-sibling::text";
@@ -176,7 +177,7 @@ namespace Phillips_Crawling
                     var pageDetails = new HtmlDocument();
                     pageDetails.LoadHtml(PageSource1);
 
-                    var allLots = pageDetails.DocumentNode.SelectNodes("//div[@class='phillips-lot']");
+                    var allLots = pageDetails.DocumentNode.SelectNodes(allLotsString);
 
                     foreach (var lot in allLots)
                     {
