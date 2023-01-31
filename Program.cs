@@ -242,7 +242,7 @@ namespace Phillips_Crawling
                             Console.WriteLine();
 
                             var watch = _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).First();
-                            if (watch.Id != 0)
+                            if (watch != null)
                             {
                                 watch.Id = watch.Id;
                                 watch.AuctionId = id;
