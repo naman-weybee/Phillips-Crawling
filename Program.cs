@@ -41,11 +41,11 @@ namespace Phillips_Crawling
                 if (newScrollHeight != scrollHeight)
                 {
                     scrollHeight = newScrollHeight;
-                    Thread.Sleep(1000);
+                    Thread.Sleep(2000);
                 }
                 else
                 {
-                    Thread.Sleep(2000);
+                    Thread.Sleep(5000);
                     break;
                 }
             } while (true);
