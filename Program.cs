@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools;
@@ -43,7 +44,7 @@ namespace Phillips_Crawling
                 }
                 else
                 {
-                    Thread.Sleep(10000);
+                    Thread.Sleep(2000);
                     break;
                 }
             } while (true);
@@ -71,6 +72,10 @@ namespace Phillips_Crawling
             var SingleTimeDuration = @".//p";
 
             Regex timeDurationRegex = new(@"(\d+)(\s?\,?\-?\&?\s?)((\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4})?(((\s?\,?\-?\s?))(\d+)?(\s?\,?\-?\s?)(\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4}))?)?", RegexOptions.IgnoreCase);
+            Regex uniqueIdRegex = new(@"(^/)?(\w+)$", RegexOptions.IgnoreCase);
+            Regex dimensionRegex = new(@"(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+)((\s?\,?\.?\-?\s?)(\w+)?(\s?\,?\.?\-?\s?)(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+))?", RegexOptions.IgnoreCase);
+            Regex priceRegex = new(@"^(\w+)?(\s?)(\w+)?(\s?)(\D*)(\d+)(\D*)$", RegexOptions.IgnoreCase);
+            Regex watchIdRegex = new(@"(\w+)?(\s?\-?\,?)(\d+)?(\s?\-?\,?)(\w+)?(\s?\-?\,?)(\d+)?", RegexOptions.IgnoreCase);
 
             try
             {
@@ -92,9 +97,7 @@ namespace Phillips_Crawling
                     link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(SingleLink).GetAttributes("href").First().Value;
                     timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
 
-                    Regex uniquId = new(@"(^/)?(\w+)$", RegexOptions.IgnoreCase);
-                    var id = uniquId.Match(link).Value;
-
+                    var id = uniqueIdRegex.Match(link).Value;
                     var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("\n", ""));
 
                     if (timeMatchRegex.Success)
@@ -136,9 +139,11 @@ namespace Phillips_Crawling
                     Console.WriteLine("EndYear: " + EndYear);
 
                     HtmlWeb web = new();
-                    //HtmlDocument doc = web.Load(link);
 
-                    WebDriver driver1 = new ChromeDriver();
+                    ChromeOptions opt = new();
+                    opt.AddArguments("--headless");
+                    opt.AddArgument("start-maximized");
+                    WebDriver driver1 = new ChromeDriver(opt);
                     driver1.Navigate().GoToUrl(link);
 
                     string PageSource1 = GetFullyLoadedWebPageContent(driver1);
@@ -163,6 +168,9 @@ namespace Phillips_Crawling
                         var modelName = "";
                         var dimensionString = "";
                         var priceString = "";
+                        var watchId = "";
+                        var watchIdString = "";
+                        var lotImageURL = "";
 
                         HtmlDocument doc = new();
                         doc.LoadHtml(lot.InnerHtml);
@@ -170,32 +178,35 @@ namespace Phillips_Crawling
                         var lotLink = lot.GetAttributes("href").First().Value;
                         HtmlDocument lotDoc = web.Load(lotLink);
 
-                        var watchId = lotDoc.DocumentNode.SelectNodes("//h3[@class='lot-page__lot__number']").First().InnerText.Replace("Σ", "").Trim();
-                        modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text").First().InnerText.Trim() : null;
-                        var lotImageURL = doc.DocumentNode.SelectNodes("//div[@class='phillips-image']/img").First().GetAttributes("src").First().Value;
-                        material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text").First().InnerText.Trim() : null;
-                        dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text").First().InnerText.Trim() : null;
-                        priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']") != null ? lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']").First().InnerText.Replace(",", "").Trim() : null;
-                        manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text").First().InnerText.Replace(",", "").Trim() : null;
-                        refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text") != null ? lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text").First().InnerText.Replace(",", "").Trim() : null;
+                        watchIdString = lotDoc.DocumentNode.SelectNodes("//h3[@class='lot-page__lot__number']")?.First().InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? null;
+                        modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                        lotImageURL = doc.DocumentNode.SelectNodes("//div[@class='phillips-image']/img")?.First().GetAttributes("src").First().Value ?? null;
+                        material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                        dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                        priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']")?.First().InnerText.Replace(",", "").Trim() ?? null;
+                        manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text")?.First().InnerText.Replace(",", "").Trim() ?? null;
+                        refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text")?.First().InnerText.Replace(",", "").Trim() ?? null;
 
-                        Regex dimensionRegex = new(@"(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+)((\s?\,?\.?\-?\s?)(\w+)?(\s?\,?\.?\-?\s?)(\d+\.?\d+?)(\s?\,?\.?\-?\s?)(\w+))?", RegexOptions.IgnoreCase);
-                        var dimensionMatchRegex = dimensionRegex.Match(dimensionString);
+                        var dimensionMatchRegex = dimensionRegex.Match(dimensionString!) ?? null;
+                        var cost = priceRegex.Match(priceString!) ?? null;
+                        var watchIdMatchRegex = watchIdRegex.Match(watchIdString!) ?? null;
 
-                        if (dimensionMatchRegex.Success)
+                        if (dimensionMatchRegex!.Success)
                         {
-                            dimensionLength = dimensionMatchRegex.Groups[1].Value;
-                            dimensionWidth = dimensionMatchRegex.Groups[8].Value ?? null;
-                            unit = dimensionMatchRegex.Groups[3].Value;
+                            dimensionLength = dimensionMatchRegex?.Groups[1].Value ?? null;
+                            dimensionWidth = dimensionMatchRegex?.Groups[8].Value ?? null;
+                            unit = dimensionMatchRegex?.Groups[3].Value ?? null;
                         }
 
-                        Regex priceRegex = new(@"^(\w+)?(\s?)(\w+)?(\s?)(\D*)(\d+)(\D*)$", RegexOptions.IgnoreCase);
-                        var cost = priceRegex.Match(priceString);
-
-                        if (cost.Success)
+                        if (cost!.Success)
                         {
-                            price = cost.Groups[6].Value;
-                            currency = cost.Groups[5].Value;
+                            price = cost?.Groups[6].Value ?? null;
+                            currency = cost?.Groups[5].Value ?? null;
+                        }
+
+                        if (watchIdMatchRegex!.Success)
+                        {
+                            watchId = watchIdMatchRegex?.Groups[1].Value.Trim() ?? null;
                         }
 
                         Watch watch = new()
