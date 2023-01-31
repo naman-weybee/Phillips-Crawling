@@ -104,13 +104,13 @@ namespace Phillips_Crawling
                     var EndMonth = string.Empty;
                     var EndYear = string.Empty;
 
-                    Title = watchAuction.SelectSingleNode(SingleTitle)?.InnerHtml.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Trim() ?? string.Empty;
+                    Title = watchAuction.SelectSingleNode(SingleTitle)?.InnerHtml.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("&nbsp", "").Trim() ?? string.Empty;
                     imageURL = watchAuction.SelectSingleNode(SingleImageURL)?.GetAttributes("src").First().Value ?? string.Empty;
                     link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(SingleLink)?.GetAttributes("href").First().Value ?? string.Empty;
                     timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration)?.InnerHtml.Trim() ?? string.Empty;
 
                     var id = uniqueIdRegex.Match(link).Value;
-                    var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("\n", ""));
+                    var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("&nbsp", "").Replace("\n", ""));
 
                     if (timeMatchRegex.Success)
                     {
@@ -149,7 +149,6 @@ namespace Phillips_Crawling
                         auction.EndDate = EndDate;
                         auction.EndMonth = EndMonth;
                         auction.EndYear = EndYear;
-
                         _context.tbl_Auctions.Update(auction);
                     }
                     else
@@ -178,128 +177,134 @@ namespace Phillips_Crawling
                     pageDetails.LoadHtml(PageSource1);
 
                     var allLots = pageDetails.DocumentNode.SelectNodes(allLotsString);
-
-                    foreach (var lot in allLots)
+                    if (allLots != null)
                     {
-                        var dimensionLength = string.Empty;
-                        var dimensionWidth = string.Empty;
-                        var unit = string.Empty;
-                        var price = string.Empty;
-                        var currency = string.Empty;
-                        var refrenceNo = string.Empty;
-                        var manufacturer = string.Empty;
-                        var material = string.Empty;
-                        var modelName = string.Empty;
-                        var dimensionString = string.Empty;
-                        var priceString = string.Empty;
-                        var watchId = string.Empty;
-                        var watchIdString = string.Empty;
-                        var lotImageURL = string.Empty;
-
-                        HtmlDocument doc = new();
-                        doc.LoadHtml(lot.InnerHtml);
-
-                        var lotLink = lot?.SelectSingleNode(singleLotLink)?.GetAttributes("href").First().Value ?? string.Empty;
-                        if (!string.IsNullOrEmpty(lotLink))
+                        foreach (var lot in allLots)
                         {
-                            HtmlDocument lotDoc = web.Load(lotLink);
-
-                            watchIdString = doc.DocumentNode.SelectSingleNode(singleWatchId)?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? string.Empty;
-                            modelName = lotDoc.DocumentNode.SelectNodes(singleModelName)?.First().InnerText.Trim() ?? string.Empty;
-                            lotImageURL = doc.DocumentNode.SelectNodes(singleLoadImageURL)?.First().GetAttributes("src").First().Value ?? string.Empty;
-                            material = lotDoc.DocumentNode.SelectNodes(singleMaterial)?.First().InnerText.Trim() ?? string.Empty;
-                            dimensionString = lotDoc.DocumentNode.SelectNodes(singleDimensionString)?.First().InnerText.Trim() ?? string.Empty;
-                            priceString = lotDoc.DocumentNode.SelectNodes(singlePriceString)?.First().InnerText.Replace(",", "").Trim() ?? string.Empty;
-                            manufacturer = lotDoc.DocumentNode.SelectNodes(singleManufacturer)?.First().InnerText.Trim() ?? string.Empty;
-                            refrenceNo = lotDoc.DocumentNode.SelectNodes(singleRefrenceNo)?.First().InnerText.Trim() ?? string.Empty;
-
-                            var dimensionMatchRegex = dimensionRegex.Match(dimensionString!) ?? null;
-                            var cost = priceRegex.Match(priceString!) ?? null;
-                            var watchIdMatchRegex = watchIdRegex.Match(watchIdString!) ?? null;
-
-                            if (dimensionMatchRegex!.Success)
+                            if (lot != null)
                             {
-                                dimensionLength = dimensionMatchRegex?.Groups[1].Value ?? string.Empty;
-                                dimensionWidth = dimensionMatchRegex?.Groups[8].Value ?? string.Empty;
-                                unit = dimensionMatchRegex?.Groups[3].Value ?? string.Empty;
-                            }
+                                var dimensionLength = string.Empty;
+                                var dimensionWidth = string.Empty;
+                                var unit = string.Empty;
+                                var price = string.Empty;
+                                var currency = string.Empty;
+                                var refrenceNo = string.Empty;
+                                var manufacturer = string.Empty;
+                                var material = string.Empty;
+                                var modelName = string.Empty;
+                                var dimensionString = string.Empty;
+                                var priceString = string.Empty;
+                                var watchId = string.Empty;
+                                var watchIdString = string.Empty;
+                                var lotImageURL = string.Empty;
 
-                            if (cost!.Success)
-                            {
-                                price = cost?.Groups[6].Value ?? string.Empty;
-                                currency = cost?.Groups[5].Value ?? string.Empty;
-                            }
+                                HtmlDocument doc = new();
+                                doc.LoadHtml(lot.InnerHtml);
 
-                            if (watchIdMatchRegex!.Success)
-                            {
-                                watchId = watchIdMatchRegex?.Groups[1].Value.Trim() ?? string.Empty;
-                            }
-
-                            Console.WriteLine($"----------Watch with watchId = {watchId}----------");
-                            Console.WriteLine($"AuctionId: {id}");
-                            Console.WriteLine($"WatchId: {watchId}");
-                            Console.WriteLine($"ModelName: {modelName}");
-                            Console.WriteLine($"ImageURL: {lotImageURL}");
-                            Console.WriteLine($"Material: {material}");
-                            Console.WriteLine($"DimensionLength: {dimensionLength}");
-                            Console.WriteLine($"DimensionWidth: {dimensionWidth}");
-                            Console.WriteLine($"Unit: {unit}");
-                            Console.WriteLine($"Manufacturer: {manufacturer}");
-                            Console.WriteLine($"Price: {price}");
-                            Console.WriteLine($"Currency: {currency}");
-                            Console.WriteLine($"RefrenceNo: {refrenceNo}");
-                            Console.WriteLine();
-
-                            var watch = await _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).FirstOrDefaultAsync();
-                            if (watch != null)
-                            {
-                                watch.Id = watch.Id;
-                                watch.AuctionId = id;
-                                watch.WatchId = watchId;
-                                watch.ModelName = modelName;
-                                watch.ImageURL = lotImageURL;
-                                watch.Material = material;
-                                watch.DimensionLength = dimensionLength;
-                                watch.DimensionWidth = dimensionWidth;
-                                watch.Unit = unit;
-                                watch.Manufacturer = manufacturer;
-                                watch.Price = price;
-                                watch.Currency = currency;
-                                watch.ReferenceNo = refrenceNo;
-
-                                _context.tbl_Watch.Update(watch);
-                            }
-                            else
-                            {
-                                Watch newWatch = new()
+                                var lotLink = lot?.SelectSingleNode(singleLotLink)?.GetAttributes("href").First().Value ?? string.Empty;
+                                if (!string.IsNullOrEmpty(lotLink))
                                 {
-                                    AuctionId = id,
-                                    WatchId = watchId,
-                                    ModelName = modelName,
-                                    ImageURL = lotImageURL,
-                                    Material = material,
-                                    DimensionLength = dimensionLength,
-                                    DimensionWidth = dimensionWidth,
-                                    Unit = unit,
-                                    Manufacturer = manufacturer,
-                                    Price = price,
-                                    Currency = currency,
-                                    ReferenceNo = refrenceNo
-                                };
-                                await _context.tbl_Watch.AddAsync(newWatch);
+                                    HtmlDocument lotDoc = web.Load(lotLink);
+
+                                    watchIdString = doc.DocumentNode.SelectSingleNode(singleWatchId)?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Replace("&nbsp", "").Trim() ?? string.Empty;
+                                    modelName = lotDoc.DocumentNode.SelectNodes(singleModelName)?.First().InnerText.Trim() ?? string.Empty;
+                                    lotImageURL = doc.DocumentNode.SelectNodes(singleLoadImageURL)?.First().GetAttributes("src").First().Value ?? string.Empty;
+                                    material = lotDoc.DocumentNode.SelectNodes(singleMaterial)?.First().InnerText.Trim() ?? string.Empty;
+                                    dimensionString = lotDoc.DocumentNode.SelectNodes(singleDimensionString)?.First().InnerText.Trim() ?? string.Empty;
+                                    priceString = lotDoc.DocumentNode.SelectNodes(singlePriceString)?.First().InnerText.Replace(",", "").Trim() ?? string.Empty;
+                                    manufacturer = lotDoc.DocumentNode.SelectNodes(singleManufacturer)?.First().InnerText.Trim() ?? string.Empty;
+                                    refrenceNo = lotDoc.DocumentNode.SelectNodes(singleRefrenceNo)?.First().InnerText.Trim() ?? string.Empty;
+
+                                    var dimensionMatchRegex = dimensionRegex.Match(dimensionString!) ?? null;
+                                    var cost = priceRegex.Match(priceString!) ?? null;
+                                    var watchIdMatchRegex = watchIdRegex.Match(watchIdString!) ?? null;
+
+                                    if (dimensionMatchRegex!.Success)
+                                    {
+                                        dimensionLength = dimensionMatchRegex?.Groups[1].Value ?? string.Empty;
+                                        dimensionWidth = dimensionMatchRegex?.Groups[8].Value ?? string.Empty;
+                                        unit = dimensionMatchRegex?.Groups[3].Value ?? string.Empty;
+                                    }
+
+                                    if (cost!.Success)
+                                    {
+                                        price = cost?.Groups[6].Value ?? string.Empty;
+                                        currency = cost?.Groups[5].Value ?? string.Empty;
+                                    }
+
+                                    if (watchIdMatchRegex!.Success)
+                                    {
+                                        watchId = watchIdMatchRegex?.Groups[1].Value.Trim() ?? string.Empty;
+                                    }
+
+                                    Console.WriteLine($"----------Watch with watchId = {watchId}----------");
+                                    Console.WriteLine($"AuctionId: {id}");
+                                    Console.WriteLine($"WatchId: {watchId}");
+                                    Console.WriteLine($"ModelName: {modelName}");
+                                    Console.WriteLine($"ImageURL: {lotImageURL}");
+                                    Console.WriteLine($"Material: {material}");
+                                    Console.WriteLine($"DimensionLength: {dimensionLength}");
+                                    Console.WriteLine($"DimensionWidth: {dimensionWidth}");
+                                    Console.WriteLine($"Unit: {unit}");
+                                    Console.WriteLine($"Manufacturer: {manufacturer}");
+                                    Console.WriteLine($"Price: {price}");
+                                    Console.WriteLine($"Currency: {currency}");
+                                    Console.WriteLine($"RefrenceNo: {refrenceNo}");
+                                    Console.WriteLine();
+
+                                    var watch = await _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).FirstOrDefaultAsync();
+                                    if (watch != null)
+                                    {
+                                        watch.Id = watch.Id;
+                                        watch.AuctionId = id;
+                                        watch.WatchId = watchId;
+                                        watch.ModelName = modelName;
+                                        watch.ImageURL = lotImageURL;
+                                        watch.Material = material;
+                                        watch.DimensionLength = dimensionLength;
+                                        watch.DimensionWidth = dimensionWidth;
+                                        watch.Unit = unit;
+                                        watch.Manufacturer = manufacturer;
+                                        watch.Price = price;
+                                        watch.Currency = currency;
+                                        watch.ReferenceNo = refrenceNo;
+                                        _context.tbl_Watch.Update(watch);
+                                    }
+                                    else
+                                    {
+                                        Watch newWatch = new()
+                                        {
+                                            AuctionId = id,
+                                            WatchId = watchId,
+                                            ModelName = modelName,
+                                            ImageURL = lotImageURL,
+                                            Material = material,
+                                            DimensionLength = dimensionLength,
+                                            DimensionWidth = dimensionWidth,
+                                            Unit = unit,
+                                            Manufacturer = manufacturer,
+                                            Price = price,
+                                            Currency = currency,
+                                            ReferenceNo = refrenceNo
+                                        };
+                                        await _context.tbl_Watch.AddAsync(newWatch);
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine();
+                                    Console.WriteLine("This lot is no longer available...!");
+                                    Console.WriteLine();
+                                }
                             }
-                        }
-                        else
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine("This lot is no longer available...!");
-                            Console.WriteLine();
                         }
                     }
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine();
                     await _context.SaveChangesAsync();
+                    Console.WriteLine();
+                    Console.WriteLine("====================================================================================================");
+                    Console.WriteLine($"Data Inserted/Updated Successfully in Auctions and Watch Table with AuctionId = {id}");
+                    Console.WriteLine("====================================================================================================");
+                    Console.WriteLine();
                 }
                 driver.Close();
                 Console.WriteLine("Data Inserted/Updated Successfully...!");
