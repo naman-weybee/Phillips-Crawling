@@ -169,6 +169,15 @@ namespace Phillips_Crawling
                     pageDetails.LoadHtml(PageSource1);
 
                     var allLots = pageDetails.DocumentNode.SelectNodes("//div[@class='phillips-lot']");
+                    var singleLotLink = ".//a[@class='detail-link']";
+                    var singleWatchId = ".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']";
+                    var singleModelName = "//strong[contains(text(),'Model Name')]/following-sibling::text";
+                    var singleLoadImageURL = "//div[@class='phillips-image']/img";
+                    var singleMaterial = "//strong[contains(text(),'Material')]/following-sibling::text";
+                    var singleDimensionString = "//strong[contains(text(),'Dimensions')]/following-sibling::text";
+                    var singlePriceString = "//p[@class='lot-page__lot__sold']";
+                    var singleManufacturer = "//strong[contains(text(),'Manufacturer')]/following-sibling::text";
+                    var singleRefrenceNo = "//strong[contains(text(),'Reference No')]/following-sibling::text";
 
                     foreach (var lot in allLots)
                     {
@@ -190,19 +199,19 @@ namespace Phillips_Crawling
                         HtmlDocument doc = new();
                         doc.LoadHtml(lot.InnerHtml);
 
-                        var lotLink = lot?.SelectSingleNode(".//a[@class='detail-link']")?.GetAttributes("href").First().Value ?? null;
+                        var lotLink = lot?.SelectSingleNode(singleLotLink)?.GetAttributes("href").First().Value ?? null;
                         if (!string.IsNullOrEmpty(lotLink))
                         {
                             HtmlDocument lotDoc = web.Load(lotLink);
 
-                            watchIdString = doc.DocumentNode.SelectSingleNode(".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']")?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? null;
-                            modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                            lotImageURL = doc.DocumentNode.SelectNodes("//div[@class='phillips-image']/img")?.First().GetAttributes("src").First().Value ?? null;
-                            material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                            dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                            priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']")?.First().InnerText.Replace(",", "").Trim() ?? null;
-                            manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                            refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                            watchIdString = doc.DocumentNode.SelectSingleNode(singleWatchId)?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? null;
+                            modelName = lotDoc.DocumentNode.SelectNodes(singleModelName)?.First().InnerText.Trim() ?? null;
+                            lotImageURL = doc.DocumentNode.SelectNodes(singleLoadImageURL)?.First().GetAttributes("src").First().Value ?? null;
+                            material = lotDoc.DocumentNode.SelectNodes(singleMaterial)?.First().InnerText.Trim() ?? null;
+                            dimensionString = lotDoc.DocumentNode.SelectNodes(singleDimensionString)?.First().InnerText.Trim() ?? null;
+                            priceString = lotDoc.DocumentNode.SelectNodes(singlePriceString)?.First().InnerText.Replace(",", "").Trim() ?? null;
+                            manufacturer = lotDoc.DocumentNode.SelectNodes(singleManufacturer)?.First().InnerText.Trim() ?? null;
+                            refrenceNo = lotDoc.DocumentNode.SelectNodes(singleRefrenceNo)?.First().InnerText.Trim() ?? null;
 
                             var dimensionMatchRegex = dimensionRegex.Match(dimensionString!) ?? null;
                             var cost = priceRegex.Match(priceString!) ?? null;
@@ -287,14 +296,13 @@ namespace Phillips_Crawling
                             Console.WriteLine();
                         }
                     }
-
                     Console.WriteLine();
                     Console.WriteLine();
                     Console.WriteLine();
                 }
                 _context.SaveChangesAsync();
                 driver.Close();
-                Console.WriteLine("Data Inserte Completed...!");
+                Console.WriteLine("Data Inserted/Updated Successfully...!");
             }
             catch (Exception ex)
             {
