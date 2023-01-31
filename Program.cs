@@ -22,10 +22,8 @@ namespace Phillips_Crawling
 {
     class Program
     {
-        private const string Url = "https://www.phillips.com/auctions/past/filter/Departments%3DWatches/sort/newest";
         private static readonly Phillips_DBContext _context = new();
-
-        public static TimeSpan MyDefaultTimeout { get; private set; }
+        private const string Url = "https://www.phillips.com/auctions/past/filter/Departments%3DWatches/sort/newest";
 
         static void Main(string[] args)
         {
@@ -73,6 +71,15 @@ namespace Phillips_Crawling
             var SingleImageURL = @".//a//img";
             var SingleLink = @".//a";
             var SingleTimeDuration = @".//p";
+            var singleLotLink = ".//a[@class='detail-link']";
+            var singleWatchId = ".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']";
+            var singleModelName = "//strong[contains(text(),'Model Name')]/following-sibling::text";
+            var singleLoadImageURL = "//div[@class='phillips-image']/img";
+            var singleMaterial = "//strong[contains(text(),'Material')]/following-sibling::text";
+            var singleDimensionString = "//strong[contains(text(),'Dimensions')]/following-sibling::text";
+            var singlePriceString = "//p[@class='lot-page__lot__sold']";
+            var singleManufacturer = "//strong[contains(text(),'Manufacturer')]/following-sibling::text";
+            var singleRefrenceNo = "//strong[contains(text(),'Reference No')]/following-sibling::text";
 
             Regex timeDurationRegex = new(@"(\d+)(\s?\,?\-?\&?\s?)((\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4})?(((\s?\,?\-?\s?))(\d+)?(\s?\,?\-?\s?)(\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4}))?)?", RegexOptions.IgnoreCase);
             Regex uniqueIdRegex = new(@"(^/)?(\w+)$", RegexOptions.IgnoreCase);
@@ -127,7 +134,7 @@ namespace Phillips_Crawling
                     Console.WriteLine($"EndYear: {EndYear}");
                     Console.WriteLine();
 
-                    var auction = _context.tbl_Auctions.Where(x => x.Id == id).First();
+                    var auction = _context.tbl_Auctions.Where(x => x.Id == id).FirstOrDefault();
                     if (auction != null)
                     {
                         auction.Id = id;
@@ -169,15 +176,6 @@ namespace Phillips_Crawling
                     pageDetails.LoadHtml(PageSource1);
 
                     var allLots = pageDetails.DocumentNode.SelectNodes("//div[@class='phillips-lot']");
-                    var singleLotLink = ".//a[@class='detail-link']";
-                    var singleWatchId = ".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']";
-                    var singleModelName = "//strong[contains(text(),'Model Name')]/following-sibling::text";
-                    var singleLoadImageURL = "//div[@class='phillips-image']/img";
-                    var singleMaterial = "//strong[contains(text(),'Material')]/following-sibling::text";
-                    var singleDimensionString = "//strong[contains(text(),'Dimensions')]/following-sibling::text";
-                    var singlePriceString = "//p[@class='lot-page__lot__sold']";
-                    var singleManufacturer = "//strong[contains(text(),'Manufacturer')]/following-sibling::text";
-                    var singleRefrenceNo = "//strong[contains(text(),'Reference No')]/following-sibling::text";
 
                     foreach (var lot in allLots)
                     {
@@ -250,7 +248,7 @@ namespace Phillips_Crawling
                             Console.WriteLine($"RefrenceNo: {refrenceNo}");
                             Console.WriteLine();
 
-                            var watch = _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).First();
+                            var watch = _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).FirstOrDefault();
                             if (watch != null)
                             {
                                 watch.Id = watch.Id;
