@@ -45,7 +45,7 @@ namespace Phillips_Crawling
                 }
                 else
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(3000);
                     break;
                 }
             } while (true);
