@@ -241,12 +241,12 @@ namespace Phillips_Crawling
                                     Console.WriteLine($"AuctionId: {id}");
                                     Console.WriteLine($"WatchId: {watchId}");
                                     Console.WriteLine($"ModelName: {modelName}");
+                                    Console.WriteLine($"Manufacturer: {manufacturer}");
                                     Console.WriteLine($"ImageURL: {lotImageURL}");
                                     Console.WriteLine($"Material: {material}");
                                     Console.WriteLine($"DimensionLength: {dimensionLength}");
                                     Console.WriteLine($"DimensionWidth: {dimensionWidth}");
                                     Console.WriteLine($"Unit: {unit}");
-                                    Console.WriteLine($"Manufacturer: {manufacturer}");
                                     Console.WriteLine($"Price: {price}");
                                     Console.WriteLine($"Currency: {currency}");
                                     Console.WriteLine($"RefrenceNo: {refrenceNo}");
