@@ -104,10 +104,10 @@ namespace Phillips_Crawling
                     var EndMonth = string.Empty;
                     var EndYear = string.Empty;
 
-                    Title = watchAuction.SelectSingleNode(SingleTitle).InnerHtml.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Trim();
-                    imageURL = watchAuction.SelectSingleNode(SingleImageURL).GetAttributes("src").First().Value;
-                    link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(SingleLink).GetAttributes("href").First().Value;
-                    timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration).InnerHtml.Trim();
+                    Title = watchAuction.SelectSingleNode(SingleTitle)?.InnerHtml.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Trim() ?? string.Empty;
+                    imageURL = watchAuction.SelectSingleNode(SingleImageURL)?.GetAttributes("src").First().Value ?? string.Empty;
+                    link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(SingleLink)?.GetAttributes("href").First().Value ?? string.Empty;
+                    timeDuration = watchAuction.SelectSingleNode(SingleTimeDuration)?.InnerHtml.Trim() ?? string.Empty;
 
                     var id = uniqueIdRegex.Match(link).Value;
                     var timeMatchRegex = timeDurationRegex.Match(timeDuration.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("\n", ""));
