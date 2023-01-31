@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools;
+using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using Phillips_Crawling_Task.Data;
 using System;
@@ -53,19 +54,18 @@ namespace Phillips_Crawling
 
         public static void GetWatchAuctionDetails()
         {
-            WebDriver driver = new ChromeDriver();
+            ChromeOptions opt = new();
+            opt.AddArguments("--headless");
+            opt.AddArgument("--log-level=3");
+            opt.AddArguments("--disable-gpu");
+            WebDriver driver = new ChromeDriver(opt);
             driver.Navigate().GoToUrl(Url);
 
             string PageSource = GetFullyLoadedWebPageContent(driver);
-            driver.Close();
             var Details = new HtmlDocument();
             Details.LoadHtml(PageSource);
 
             var AllWatchAuctions = Details.DocumentNode.SelectNodes("//li[@class='has-image auction col-sm-2']");
-            var Titles = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']//h2/a");
-            var ImageURL = Details.DocumentNode.SelectNodes("//img[@class='phillips-image__image']");
-            var Links = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']/h2/a");
-            var TimeDuration = Details.DocumentNode.SelectNodes("//div[@class='content-body col-sm-2 col-md-5']");
             var SingleTitle = @"./div[@class='content-body col-sm-2 col-md-5']//h2/a";
             var SingleImageURL = @".//a//img";
             var SingleLink = @".//a";
@@ -125,35 +125,28 @@ namespace Phillips_Crawling
                     };
                     _context.tbl_Auctions.Add(auctions);
 
-                    Console.WriteLine("----------Auction----------");
-                    Console.WriteLine("Id: " + id);
-                    Console.WriteLine("Title: " + Title);
-                    Console.WriteLine("ImageURL: " + imageURL);
-                    Console.WriteLine("Link: " + link);
-                    Console.WriteLine("TimeDuration: " + timeDuration);
-                    Console.WriteLine("StartDate: " + StartDate);
-                    Console.WriteLine("StartMonth: " + StartMonth);
-                    Console.WriteLine("StartYear: " + StartYear);
-                    Console.WriteLine("EndDate: " + EndDate);
-                    Console.WriteLine("EndMonth: " + EndMonth);
-                    Console.WriteLine("EndYear: " + EndYear);
+                    Console.WriteLine($"----------Auction with Id = {id}----------");
+                    Console.WriteLine($"Id: {id}");
+                    Console.WriteLine($"Title: {Title}");
+                    Console.WriteLine($"ImageURL: {imageURL}");
+                    Console.WriteLine($"Link: {link}");
+                    Console.WriteLine($"TimeDuration: {timeDuration}");
+                    Console.WriteLine($"StartDate: {StartDate}");
+                    Console.WriteLine($"StartMonth: {StartMonth}");
+                    Console.WriteLine($"StartYear: {StartYear}");
+                    Console.WriteLine($"EndDate: {EndDate}");
+                    Console.WriteLine($"EndMonth: {EndMonth}");
+                    Console.WriteLine($"EndYear: {EndYear}");
+                    Console.WriteLine();
+
+                    driver.Navigate().GoToUrl(link);
+                    string PageSource1 = GetFullyLoadedWebPageContent(driver);
 
                     HtmlWeb web = new();
-
-                    ChromeOptions opt = new();
-                    opt.AddArguments("--headless");
-                    opt.AddArgument("start-maximized");
-                    WebDriver driver1 = new ChromeDriver(opt);
-                    driver1.Navigate().GoToUrl(link);
-
-                    string PageSource1 = GetFullyLoadedWebPageContent(driver1);
-                    driver1.Close();
-
                     var pageDetails = new HtmlDocument();
                     pageDetails.LoadHtml(PageSource1);
 
-                    var allLots = pageDetails.DocumentNode.SelectNodes("//a[@class='detail-link']");
-                    var lotDetails = pageDetails.DocumentNode.SelectNodes("//ul[@class='lot-page__details__list']");
+                    var allLots = pageDetails.DocumentNode.SelectNodes("//div[@class='phillips-lot']");
 
                     foreach (var lot in allLots)
                     {
@@ -175,17 +168,17 @@ namespace Phillips_Crawling
                         HtmlDocument doc = new();
                         doc.LoadHtml(lot.InnerHtml);
 
-                        var lotLink = lot.GetAttributes("href").First().Value;
+                        var lotLink = lot.SelectSingleNode(".//a[@class='detail-link']").GetAttributes("href").First().Value;
                         HtmlDocument lotDoc = web.Load(lotLink);
 
-                        watchIdString = lotDoc.DocumentNode.SelectNodes("//h3[@class='lot-page__lot__number']")?.First().InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? null;
+                        watchIdString = lotDoc.DocumentNode.SelectSingleNode(".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']")?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? null;
                         modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
                         lotImageURL = doc.DocumentNode.SelectNodes("//div[@class='phillips-image']/img")?.First().GetAttributes("src").First().Value ?? null;
                         material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
                         dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
                         priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']")?.First().InnerText.Replace(",", "").Trim() ?? null;
-                        manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text")?.First().InnerText.Replace(",", "").Trim() ?? null;
-                        refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text")?.First().InnerText.Replace(",", "").Trim() ?? null;
+                        manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                        refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
 
                         var dimensionMatchRegex = dimensionRegex.Match(dimensionString!) ?? null;
                         var cost = priceRegex.Match(priceString!) ?? null;
@@ -226,19 +219,20 @@ namespace Phillips_Crawling
                         };
                         _context.tbl_Watch.Add(watch);
 
-                        Console.WriteLine("----------Watch----------");
-                        Console.WriteLine("AuctionId: " + id);
-                        Console.WriteLine("WatchId: " + watchId);
-                        Console.WriteLine("ModelName: " + modelName);
-                        Console.WriteLine("ImageURL: " + lotImageURL);
-                        Console.WriteLine("Material: " + material);
-                        Console.WriteLine("DimensionLength: " + dimensionLength);
-                        Console.WriteLine("DimensionWidth: " + dimensionWidth);
-                        Console.WriteLine("Unit: " + unit);
-                        Console.WriteLine("Manufacturer: " + manufacturer);
-                        Console.WriteLine("Price: " + price);
-                        Console.WriteLine("Currency: " + currency);
-                        Console.WriteLine("RefrenceNo: " + refrenceNo);
+                        Console.WriteLine($"----------Watch with watchId = {watchId}----------");
+                        Console.WriteLine($"AuctionId: {id}");
+                        Console.WriteLine($"WatchId: {watchId}");
+                        Console.WriteLine($"ModelName: {modelName}");
+                        Console.WriteLine($"ImageURL: {lotImageURL}");
+                        Console.WriteLine($"Material: {material}");
+                        Console.WriteLine($"DimensionLength: {dimensionLength}");
+                        Console.WriteLine($"DimensionWidth: {dimensionWidth}");
+                        Console.WriteLine($"Unit: {unit}");
+                        Console.WriteLine($"Manufacturer: {manufacturer}");
+                        Console.WriteLine($"Price: {price}");
+                        Console.WriteLine($"Currency: {currency}");
+                        Console.WriteLine($"RefrenceNo: {refrenceNo}");
+                        Console.WriteLine();
                     }
 
                     Console.WriteLine();
