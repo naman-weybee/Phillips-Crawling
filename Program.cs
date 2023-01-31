@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -10,6 +11,7 @@ using Phillips_Crawling_Task.Data;
 using System;
 using System.Collections;
 using System.Data.SqlTypes;
+using System.Diagnostics;
 using System.Net;
 using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
@@ -58,6 +60,7 @@ namespace Phillips_Crawling
             opt.AddArguments("--headless");
             opt.AddArgument("--log-level=3");
             opt.AddArguments("--disable-gpu");
+
             WebDriver driver = new ChromeDriver(opt);
             driver.Navigate().GoToUrl(Url);
 
@@ -110,21 +113,6 @@ namespace Phillips_Crawling
                         EndYear = timeMatchRegex.Groups[18].Value == "" ? timeMatchRegex.Groups[8].Value : timeMatchRegex.Groups[18].Value;
                     }
 
-                    Auctions auctions = new()
-                    {
-                        Id = id,
-                        Title = Title,
-                        ImageURL = imageURL,
-                        Link = link,
-                        StartDate = StartDate,
-                        StartMonth = StartMonth,
-                        StartYear = StartYear,
-                        EndDate = EndDate,
-                        EndMonth = EndMonth,
-                        EndYear = EndYear
-                    };
-                    _context.tbl_Auctions.Add(auctions);
-
                     Console.WriteLine($"----------Auction with Id = {id}----------");
                     Console.WriteLine($"Id: {id}");
                     Console.WriteLine($"Title: {Title}");
@@ -138,6 +126,40 @@ namespace Phillips_Crawling
                     Console.WriteLine($"EndMonth: {EndMonth}");
                     Console.WriteLine($"EndYear: {EndYear}");
                     Console.WriteLine();
+
+                    var auction = _context.tbl_Auctions.Where(x => x.Id == id).First();
+                    if (auction != null)
+                    {
+                        auction.Id = id;
+                        auction.Title = Title;
+                        auction.ImageURL = imageURL;
+                        auction.Link = link;
+                        auction.StartDate = StartDate;
+                        auction.StartMonth = StartMonth;
+                        auction.StartYear = StartYear;
+                        auction.EndDate = EndDate;
+                        auction.EndMonth = EndMonth;
+                        auction.EndYear = EndYear;
+
+                        _context.tbl_Auctions.Update(auction);
+                    }
+                    else
+                    {
+                        Auctions auctions = new()
+                        {
+                            Id = id,
+                            Title = Title,
+                            ImageURL = imageURL,
+                            Link = link,
+                            StartDate = StartDate,
+                            StartMonth = StartMonth,
+                            StartYear = StartYear,
+                            EndDate = EndDate,
+                            EndMonth = EndMonth,
+                            EndYear = EndYear
+                        };
+                        _context.tbl_Auctions.Add(auctions);
+                    }
 
                     driver.Navigate().GoToUrl(link);
                     string PageSource1 = GetFullyLoadedWebPageContent(driver);
@@ -168,71 +190,102 @@ namespace Phillips_Crawling
                         HtmlDocument doc = new();
                         doc.LoadHtml(lot.InnerHtml);
 
-                        var lotLink = lot.SelectSingleNode(".//a[@class='detail-link']").GetAttributes("href").First().Value;
-                        HtmlDocument lotDoc = web.Load(lotLink);
-
-                        watchIdString = lotDoc.DocumentNode.SelectSingleNode(".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']")?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? null;
-                        modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                        lotImageURL = doc.DocumentNode.SelectNodes("//div[@class='phillips-image']/img")?.First().GetAttributes("src").First().Value ?? null;
-                        material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                        dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                        priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']")?.First().InnerText.Replace(",", "").Trim() ?? null;
-                        manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-                        refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
-
-                        var dimensionMatchRegex = dimensionRegex.Match(dimensionString!) ?? null;
-                        var cost = priceRegex.Match(priceString!) ?? null;
-                        var watchIdMatchRegex = watchIdRegex.Match(watchIdString!) ?? null;
-
-                        if (dimensionMatchRegex!.Success)
+                        var lotLink = lot?.SelectSingleNode(".//a[@class='detail-link']")?.GetAttributes("href").First().Value ?? null;
+                        if (!string.IsNullOrEmpty(lotLink))
                         {
-                            dimensionLength = dimensionMatchRegex?.Groups[1].Value ?? null;
-                            dimensionWidth = dimensionMatchRegex?.Groups[8].Value ?? null;
-                            unit = dimensionMatchRegex?.Groups[3].Value ?? null;
+                            HtmlDocument lotDoc = web.Load(lotLink);
+
+                            watchIdString = doc.DocumentNode.SelectSingleNode(".//strong[@class='phillips-lot__description__lot-number-wrapper__lot-number']")?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Trim() ?? null;
+                            modelName = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Model Name')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                            lotImageURL = doc.DocumentNode.SelectNodes("//div[@class='phillips-image']/img")?.First().GetAttributes("src").First().Value ?? null;
+                            material = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Material')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                            dimensionString = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Dimensions')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                            priceString = lotDoc.DocumentNode.SelectNodes("//p[@class='lot-page__lot__sold']")?.First().InnerText.Replace(",", "").Trim() ?? null;
+                            manufacturer = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Manufacturer')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+                            refrenceNo = lotDoc.DocumentNode.SelectNodes("//strong[contains(text(),'Reference No')]/following-sibling::text")?.First().InnerText.Trim() ?? null;
+
+                            var dimensionMatchRegex = dimensionRegex.Match(dimensionString!) ?? null;
+                            var cost = priceRegex.Match(priceString!) ?? null;
+                            var watchIdMatchRegex = watchIdRegex.Match(watchIdString!) ?? null;
+
+                            if (dimensionMatchRegex!.Success)
+                            {
+                                dimensionLength = dimensionMatchRegex?.Groups[1].Value ?? null;
+                                dimensionWidth = dimensionMatchRegex?.Groups[8].Value ?? null;
+                                unit = dimensionMatchRegex?.Groups[3].Value ?? null;
+                            }
+
+                            if (cost!.Success)
+                            {
+                                price = cost?.Groups[6].Value ?? null;
+                                currency = cost?.Groups[5].Value ?? null;
+                            }
+
+                            if (watchIdMatchRegex!.Success)
+                            {
+                                watchId = watchIdMatchRegex?.Groups[1].Value.Trim() ?? null;
+                            }
+
+                            Console.WriteLine($"----------Watch with watchId = {watchId}----------");
+                            Console.WriteLine($"AuctionId: {id}");
+                            Console.WriteLine($"WatchId: {watchId}");
+                            Console.WriteLine($"ModelName: {modelName}");
+                            Console.WriteLine($"ImageURL: {lotImageURL}");
+                            Console.WriteLine($"Material: {material}");
+                            Console.WriteLine($"DimensionLength: {dimensionLength}");
+                            Console.WriteLine($"DimensionWidth: {dimensionWidth}");
+                            Console.WriteLine($"Unit: {unit}");
+                            Console.WriteLine($"Manufacturer: {manufacturer}");
+                            Console.WriteLine($"Price: {price}");
+                            Console.WriteLine($"Currency: {currency}");
+                            Console.WriteLine($"RefrenceNo: {refrenceNo}");
+                            Console.WriteLine();
+
+                            var watch = _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).First();
+                            if (watch.Id != 0)
+                            {
+                                watch.Id = watch.Id;
+                                watch.AuctionId = id;
+                                watch.WatchId = watchId;
+                                watch.ModelName = modelName;
+                                watch.ImageURL = lotImageURL;
+                                watch.Material = material;
+                                watch.DimensionLength = dimensionLength;
+                                watch.DimensionWidth = dimensionWidth;
+                                watch.Unit = unit;
+                                watch.Manufacturer = manufacturer;
+                                watch.Price = price;
+                                watch.Currency = currency;
+                                watch.ReferenceNo = refrenceNo;
+
+                                _context.tbl_Watch.Update(watch);
+                            }
+                            else
+                            {
+                                Watch newWatch = new()
+                                {
+                                    AuctionId = id,
+                                    WatchId = watchId,
+                                    ModelName = modelName,
+                                    ImageURL = lotImageURL,
+                                    Material = material,
+                                    DimensionLength = dimensionLength,
+                                    DimensionWidth = dimensionWidth,
+                                    Unit = unit,
+                                    Manufacturer = manufacturer,
+                                    Price = price,
+                                    Currency = currency,
+                                    ReferenceNo = refrenceNo
+                                };
+                                _context.tbl_Watch.Add(newWatch);
+                            }
                         }
-
-                        if (cost!.Success)
+                        else
                         {
-                            price = cost?.Groups[6].Value ?? null;
-                            currency = cost?.Groups[5].Value ?? null;
+                            Console.WriteLine();
+                            Console.WriteLine("This lot is no longer available...!");
+                            Console.WriteLine();
                         }
-
-                        if (watchIdMatchRegex!.Success)
-                        {
-                            watchId = watchIdMatchRegex?.Groups[1].Value.Trim() ?? null;
-                        }
-
-                        Watch watch = new()
-                        {
-                            AuctionId = id,
-                            WatchId = watchId,
-                            ModelName = modelName,
-                            ImageURL = lotImageURL,
-                            Material = material,
-                            DimensionLength = dimensionLength,
-                            DimensionWidth = dimensionWidth,
-                            Unit = unit,
-                            Manufacturer = manufacturer,
-                            Price = price,
-                            Currency = currency,
-                            ReferenceNo = refrenceNo
-                        };
-                        _context.tbl_Watch.Add(watch);
-
-                        Console.WriteLine($"----------Watch with watchId = {watchId}----------");
-                        Console.WriteLine($"AuctionId: {id}");
-                        Console.WriteLine($"WatchId: {watchId}");
-                        Console.WriteLine($"ModelName: {modelName}");
-                        Console.WriteLine($"ImageURL: {lotImageURL}");
-                        Console.WriteLine($"Material: {material}");
-                        Console.WriteLine($"DimensionLength: {dimensionLength}");
-                        Console.WriteLine($"DimensionWidth: {dimensionWidth}");
-                        Console.WriteLine($"Unit: {unit}");
-                        Console.WriteLine($"Manufacturer: {manufacturer}");
-                        Console.WriteLine($"Price: {price}");
-                        Console.WriteLine($"Currency: {currency}");
-                        Console.WriteLine($"RefrenceNo: {refrenceNo}");
-                        Console.WriteLine();
                     }
 
                     Console.WriteLine();
@@ -240,6 +293,7 @@ namespace Phillips_Crawling
                     Console.WriteLine();
                 }
                 _context.SaveChangesAsync();
+                driver.Close();
                 Console.WriteLine("Data Inserte Completed...!");
             }
             catch (Exception ex)
