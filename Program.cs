@@ -52,12 +52,13 @@ namespace Phillips_Crawling
             return driver.PageSource;
         }
 
-        public static void GetWatchAuctionDetails()
+        public static async void GetWatchAuctionDetails()
         {
             ChromeOptions opt = new();
             opt.AddArguments("--headless");
             opt.AddArgument("--log-level=3");
             opt.AddArguments("--disable-gpu");
+            opt.AddArguments("--start-maximized");
 
             WebDriver driver = new ChromeDriver(opt);
             driver.Navigate().GoToUrl(Url);
@@ -134,7 +135,7 @@ namespace Phillips_Crawling
                     Console.WriteLine($"EndYear: {EndYear}");
                     Console.WriteLine();
 
-                    var auction = _context.tbl_Auctions.Where(x => x.Id == id).FirstOrDefault();
+                    var auction = await _context.tbl_Auctions.Where(x => x.Id == id).FirstOrDefaultAsync();
                     if (auction != null)
                     {
                         auction.Id = id;
@@ -165,7 +166,7 @@ namespace Phillips_Crawling
                             EndMonth = EndMonth,
                             EndYear = EndYear
                         };
-                        _context.tbl_Auctions.Add(auctions);
+                        await _context.tbl_Auctions.AddAsync(auctions);
                     }
 
                     driver.Navigate().GoToUrl(link);
@@ -248,7 +249,7 @@ namespace Phillips_Crawling
                             Console.WriteLine($"RefrenceNo: {refrenceNo}");
                             Console.WriteLine();
 
-                            var watch = _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).FirstOrDefault();
+                            var watch = await _context.tbl_Watch.Where(x => x.AuctionId == id && x.WatchId == watchId).FirstOrDefaultAsync();
                             if (watch != null)
                             {
                                 watch.Id = watch.Id;
@@ -284,7 +285,7 @@ namespace Phillips_Crawling
                                     Currency = currency,
                                     ReferenceNo = refrenceNo
                                 };
-                                _context.tbl_Watch.Add(newWatch);
+                                await _context.tbl_Watch.AddAsync(newWatch);
                             }
                         }
                         else
@@ -297,8 +298,8 @@ namespace Phillips_Crawling
                     Console.WriteLine();
                     Console.WriteLine();
                     Console.WriteLine();
+                    await _context.SaveChangesAsync();
                 }
-                _context.SaveChangesAsync();
                 driver.Close();
                 Console.WriteLine("Data Inserted/Updated Successfully...!");
             }
