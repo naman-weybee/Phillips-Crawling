@@ -41,11 +41,11 @@ namespace Phillips_Crawling
                 if (newScrollHeight != scrollHeight)
                 {
                     scrollHeight = newScrollHeight;
-                    Thread.Sleep(2000);
+                    Thread.Sleep(1500);
                 }
                 else
                 {
-                    Thread.Sleep(3000);
+                    Thread.Sleep(2500);
                     break;
                 }
             } while (true);
@@ -55,10 +55,10 @@ namespace Phillips_Crawling
         public static async void GetWatchAuctionDetails()
         {
             ChromeOptions opt = new();
-            opt.AddArguments("--headless");
             opt.AddArgument("--log-level=3");
             opt.AddArguments("--disable-gpu");
             opt.AddArguments("--start-maximized");
+            opt.AddArguments("--no-sandbox");
 
             WebDriver driver = new ChromeDriver(opt);
             driver.Navigate().GoToUrl(Url);
