@@ -11,7 +11,7 @@ using Phillips_Crawling_Task.Data;
 namespace Phillips_Crawling_Task.Migrations
 {
     [DbContext(typeof(Phillips_DBContext))]
-    [Migration("20230131094037_DBCreated")]
+    [Migration("20230201091454_DBCreated")]
     partial class DBCreated
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
