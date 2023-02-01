@@ -55,6 +55,7 @@ namespace Phillips_Crawling
         public static async void GetWatchAuctionDetails()
         {
             ChromeOptions opt = new();
+            opt.AddArguments("headless");
             opt.AddArgument("--log-level=3");
             opt.AddArguments("--disable-gpu");
             opt.AddArguments("--start-maximized");
