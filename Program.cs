@@ -61,7 +61,9 @@ namespace Phillips_Crawling
             opt.AddArguments("--start-maximized");
             opt.AddArguments("--no-sandbox");
 
-            WebDriver driver = new ChromeDriver(opt);
+            //WebDriver driver = new ChromeDriver(opt);
+            ChromeDriver driver = new(ChromeDriverService.CreateDefaultService(), opt, TimeSpan.FromMinutes(3));
+
             driver.Navigate().GoToUrl(Url);
 
             string AuctionPageSource = GetFullyLoadedWebPageContent(driver);
