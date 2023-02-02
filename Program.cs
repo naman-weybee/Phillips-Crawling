@@ -207,7 +207,11 @@ namespace Phillips_Crawling
                                 var lotLink = lot?.SelectSingleNode(singleLotLink)?.GetAttributes("href").First().Value ?? string.Empty;
                                 if (!string.IsNullOrEmpty(lotLink))
                                 {
-                                    HtmlDocument lotDoc = web.Load(lotLink);
+                                    //HtmlDocument lotDoc = web.Load(lotLink);
+                                    driver.Navigate().GoToUrl(lotLink);
+                                    string lotSource = GetFullyLoadedWebPageContent(driver);
+                                    var lotDoc = new HtmlDocument();
+                                    lotDoc.LoadHtml(lotSource);
 
                                     watchIdString = doc.DocumentNode.SelectSingleNode(singleWatchId)?.InnerText.Replace("Σ", "").Replace("?", "").Replace("~", "").Replace("≈", "").Replace("&nbsp", "").Trim() ?? string.Empty;
                                     modelName = lotDoc.DocumentNode.SelectNodes(singleModelName)?.First().InnerText.Trim() ?? string.Empty;
