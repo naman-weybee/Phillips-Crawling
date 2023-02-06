@@ -1,22 +1,9 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Options;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.DevTools;
-using OpenQA.Selenium.Interactions;
-using OpenQA.Selenium.Support.UI;
 using Phillips_Crawling_Task.Data;
-using System;
-using System.Collections;
-using System.Data.SqlTypes;
-using System.Diagnostics;
-using System.Net;
-using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace Phillips_Crawling
 {
@@ -61,16 +48,14 @@ namespace Phillips_Crawling
             opt.AddArguments("--start-maximized");
             opt.AddArguments("--no-sandbox");
 
-            //WebDriver driver = new ChromeDriver(opt);
             ChromeDriver driver = new(ChromeDriverService.CreateDefaultService(), opt, TimeSpan.FromMinutes(3));
-
             driver.Navigate().GoToUrl(Url);
 
             string AuctionPageSource = GetFullyLoadedWebPageContent(driver);
             var Details = new HtmlDocument();
             Details.LoadHtml(AuctionPageSource);
 
-            var AllWatchAuctions = Details.DocumentNode.SelectNodes("//li[@class='has-image auction col-sm-2']");
+            var AllWatchAuctionsXpath = "//li[@class='has-image auction col-sm-2']";
             var SingleTitle = @"./div[@class='content-body col-sm-2 col-md-5']//h2/a";
             var SingleImageURL = @".//a//img";
             var SingleLink = @".//a";
@@ -85,6 +70,7 @@ namespace Phillips_Crawling
             var singlePriceString = "//p[@class='lot-page__lot__sold']";
             var singleManufacturer = "//strong[contains(text(),'Manufacturer')]/following-sibling::text";
             var singleRefrenceNo = "//strong[contains(text(),'Reference No')]/following-sibling::text";
+            var AllWatchAuctions = Details.DocumentNode.SelectNodes(AllWatchAuctionsXpath);
 
             Regex timeDurationRegex = new(@"(\d+)(\s?\,?\-?\&?\s?)((\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4})?(((\s?\,?\-?\s?))(\d+)?(\s?\,?\-?\s?)(\d+)?(\s?\,?\-?\s?)(\w+)?(\s?\,?\-?\s?)(\d{4}))?)?", RegexOptions.IgnoreCase);
             Regex uniqueIdRegex = new(@"(^/)?(\w+)$", RegexOptions.IgnoreCase);
@@ -207,7 +193,6 @@ namespace Phillips_Crawling
                                 var lotLink = lot?.SelectSingleNode(singleLotLink)?.GetAttributes("href").First().Value ?? string.Empty;
                                 if (!string.IsNullOrEmpty(lotLink))
                                 {
-                                    //HtmlDocument lotDoc = web.Load(lotLink);
                                     driver.Navigate().GoToUrl(lotLink);
                                     string lotSource = GetFullyLoadedWebPageContent(driver);
                                     var lotDoc = new HtmlDocument();
@@ -309,12 +294,12 @@ namespace Phillips_Crawling
                     await _context.SaveChangesAsync();
                     Console.WriteLine();
                     Console.WriteLine("====================================================================================================");
-                    Console.WriteLine($"Data Inserted/Updated Successfully in Auctions and Watch Table with AuctionId = {id}");
+                    Console.WriteLine($"Data Saved Successfully in Auctions and Watch Tables with AuctionId = {id}");
                     Console.WriteLine("====================================================================================================");
                     Console.WriteLine();
                 }
                 driver.Close();
-                Console.WriteLine("Data Inserted/Updated Successfully...!");
+                Console.WriteLine("Data Saved Successfully in All Tables...!");
             }
             catch (Exception ex)
             {
