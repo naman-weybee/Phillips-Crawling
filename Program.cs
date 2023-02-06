@@ -12,6 +12,7 @@ namespace Phillips_Crawling
     {
         private static readonly Phillips_DBContext _context = new();
         private const string Url = "https://www.phillips.com/auctions/past/filter/Departments%3DWatches/sort/newest";
+        private const string BaseUrl = "https://www.phillips.com/";
 
         static void Main(string[] args)
         {
@@ -74,7 +75,7 @@ namespace Phillips_Crawling
 
                     Title = watchAuction.SelectSingleNode(XpathStrings.SingleTitle)?.InnerHtml.Replace("&amp;#8211 ", "&").Replace("&amp;", "&").Replace("&nbsp", "").Trim() ?? string.Empty;
                     imageURL = watchAuction.SelectSingleNode(XpathStrings.SingleImageURL)?.GetAttributes("src").First().Value ?? string.Empty;
-                    link = "https://www.phillips.com/" + watchAuction.SelectSingleNode(XpathStrings.SingleLink)?.GetAttributes("href").First().Value ?? string.Empty;
+                    link = BaseUrl + watchAuction.SelectSingleNode(XpathStrings.SingleLink)?.GetAttributes("href").First().Value ?? string.Empty;
                     timeDuration = watchAuction.SelectSingleNode(XpathStrings.SingleTimeDuration)?.InnerHtml.Trim() ?? string.Empty;
 
                     var id = RegexString.uniqueIdRegex.Match(link).Value;
