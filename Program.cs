@@ -215,7 +215,7 @@ namespace Phillips_Crawling
                                     Console.WriteLine($"ModelName: {modelName}");
                                     Console.WriteLine($"Manufacturer: {manufacturer}");
                                     Console.WriteLine($"ImageURL: {lotImageURL}");
-                                    Console.WriteLine($"ImageURL: {lotLink}");
+                                    Console.WriteLine($"WatchLink: {lotLink}");
                                     Console.WriteLine($"Material: {material}");
                                     Console.WriteLine($"DimensionLength: {dimensionLength}");
                                     Console.WriteLine($"DimensionWidth: {dimensionWidth}");
