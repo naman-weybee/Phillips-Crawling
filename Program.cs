@@ -215,6 +215,7 @@ namespace Phillips_Crawling
                                     Console.WriteLine($"ModelName: {modelName}");
                                     Console.WriteLine($"Manufacturer: {manufacturer}");
                                     Console.WriteLine($"ImageURL: {lotImageURL}");
+                                    Console.WriteLine($"ImageURL: {lotLink}");
                                     Console.WriteLine($"Material: {material}");
                                     Console.WriteLine($"DimensionLength: {dimensionLength}");
                                     Console.WriteLine($"DimensionWidth: {dimensionWidth}");
@@ -231,6 +232,7 @@ namespace Phillips_Crawling
                                         watch.AuctionId = id;
                                         watch.WatchId = watchId;
                                         watch.ModelName = modelName;
+                                        watch.WatchLink = lotLink;
                                         watch.ImageURL = lotImageURL;
                                         watch.Material = material;
                                         watch.DimensionLength = dimensionLength;
@@ -249,6 +251,7 @@ namespace Phillips_Crawling
                                             AuctionId = id,
                                             WatchId = watchId,
                                             ModelName = modelName,
+                                            WatchLink = lotLink,
                                             ImageURL = lotImageURL,
                                             Material = material,
                                             DimensionLength = dimensionLength,

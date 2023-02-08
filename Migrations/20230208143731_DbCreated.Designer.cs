@@ -11,8 +11,8 @@ using Phillips_Crawling_Task.Data;
 namespace Phillips_Crawling_Task.Migrations
 {
     [DbContext(typeof(Phillips_DBContext))]
-    [Migration("20230202054244_DBCreated")]
-    partial class DBCreated
+    [Migration("20230208143731_DbCreated")]
+    partial class DbCreated
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -104,6 +104,9 @@ namespace Phillips_Crawling_Task.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("WatchId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WatchLink")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

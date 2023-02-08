@@ -14,7 +14,7 @@ namespace Phillips_Crawling_Task.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"data source=DESKTOP-9J2CV47; database=Phillips; integrated security=SSPI");
+            optionsBuilder.UseSqlServer(@"data source=DESKTOP-9J2CV47; database=Phillips_DB; integrated security=SSPI");
         }
 
         public DbSet<Auctions> tbl_Auctions { get; set; }

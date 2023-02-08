@@ -4,7 +4,7 @@
 
 namespace Phillips_Crawling_Task.Migrations
 {
-    public partial class DBCreated : Migration
+    public partial class DbCreated : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -38,6 +38,7 @@ namespace Phillips_Crawling_Task.Migrations
                     WatchId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ModelName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ImageURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    WatchLink = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Material = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DimensionLength = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DimensionWidth = table.Column<string>(type: "nvarchar(max)", nullable: true),

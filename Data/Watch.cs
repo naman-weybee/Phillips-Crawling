@@ -17,6 +17,7 @@ namespace Phillips_Crawling_Task.Data
         public string? WatchId { get; set; }
         public string? ModelName { get; set; }
         public string? ImageURL { get; set; }
+        public string? WatchLink { get; set; }
         public string? Material { get; set; }
         public string? DimensionLength { get; set; }
         public string? DimensionWidth { get; set; }

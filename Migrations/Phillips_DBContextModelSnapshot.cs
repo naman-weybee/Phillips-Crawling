@@ -104,6 +104,9 @@ namespace Phillips_Crawling_Task.Migrations
                     b.Property<string>("WatchId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("WatchLink")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuctionId");
